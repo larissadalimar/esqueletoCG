@@ -36,13 +36,70 @@
     function inside(  x, y, primitive  ) {
             // You should implement your inside test here for all shapes
             // for now, it only returns a false test
+
+            /* versao antiga
             if (primitive.shape == "triangle") {
                 return insideTriangle(x, y, primitive);
             }
-
-            //if (primitive.shape != "triangle") { triangular a primitiva e chamar inside para todos os triângulos resultantes }
+            else { return false; }
 
             return false
+            */
+
+            //Ponto que quero calcular se está dentro do triângulo
+            var q = [x, y];
+
+            //Pontos do triângulo
+            var p0 = [primitive.vertices[0][0], primitive.vertices[0][1]];
+            var p1 = [primitive.vertices[1][0], primitive.vertices[1][1]];
+            var p2 = [primitive.vertices[2][0], primitive.vertices[2][1]];
+
+            //Aqui eu calculo os vetores V1, V2 e V3, usados pra achar os vetores normais
+            //V1 = p1 - p0
+            var v1 = [p1[0] - p0[0], p1[1] - p0[1]];
+
+            //V2 = p2 - p1
+            var v2 = [p2[0] - p1[0], p2[1] - p1[1]];
+
+            //V3 = p0 - p2
+            var v3 = [p0[0] - p2[0], p0[1] - p2[1]];
+
+            //Aqui eu acho as coordenadas do vetor normal de cada aresta
+            //Onde, se eu tenho a aresta Vi = (x,y), ni = (-y,x)
+            var n1 = [-v1[1], v1[0]];
+            var n2 = [-v2[1], v2[0]];
+            var n3 = [-v3[1], v3[0]];
+
+            //Variável usada para realizar o teste de inclusão.
+            //Uso apenas uma pois não me interessa guardar os resultados, apenas saber se todos deram > 0. Ou seja, se teste <= 0 alguma vez, retorno false
+            var teste = 0;
+
+            //Vetor resultante da subtração (q - Pi), usado no teste de inclusão.
+            //Também não preciso armazená-lo, então uso apenas uma variável
+            var sub = [0,0];
+
+            //Seja "q" o ponto que eu quero saber se está dentro do triângulo
+            //Teste ti = ni . (q - Pi) (Produto interno)
+            //"q" está dentro do triângulo se teste >= 0 em todos os casos
+            //teste > 0 -> ponto dentro do triângulo
+            //teste = 0 -> ponto na borda do triângulo
+            //Teste 1
+            sub = [x - p0[0], y - p0[1]];
+            teste = n1[0]*sub[0] + n1[1]*sub[1]; //t1 = n1 . (q - p0) (Produto interno)
+            if (teste < 0) { return false; }
+
+            //Teste 2
+            sub = [x - p1[0], y - p1[1]];
+            teste = n2[0]*sub[0] + n2[1]*sub[1]; //t2 = n2 . (q - p1) (Produto interno)
+            if (teste < 0) { return false; }
+
+            //Teste 3
+            sub = [x - p2[0], y - p2[1]];
+            teste = n3[0]*sub[0] + n3[1]*sub[1]; //t3 = n3 . (q - p2) (Produto interno)
+            if (teste < 0) { return false; }
+
+            //Se não retornou false em nenhum teste, retorna true
+            return true;
     }
 
     function insideTriangle(x, y, triangle) {
@@ -102,6 +159,47 @@
         return true;
     }
 
+    function triangulateCircle(circle) {
+        var p0 = circle.center;
+        var r = circle.radius;
+
+        //Numero de pontos gerados para triangular o circulo
+        var num_pontos = 50;
+
+        //Angulo formado pelas arestas originadas por 2 pontos adjacentes,
+            //sem ser a aresta que os conecta, que se encontram no centro do circulo
+        //OBS: theta esta em graus
+        var theta = 360 / num_pontos;
+        //Passando theta pra radianos
+        theta = theta * (Math.PI/180);
+
+        //Array com os pontos gerados, inicializado como vazio
+        var pontos = [];
+
+        //OBS: em coordenadas polares tradicionais, temos p = (r*cos(theta), r*sen(theta))
+            //mas nesse caso, o angulo theta e medido a partir do eixo x, no sentido anti horario.
+            //Aqui, como quero que o primeiro ponto esteja nas coordenadas (0,r) (tomando o centro do circulo como origem),
+            //o angulo theta sera medido a partir do eixo y, logo, as coordenas serao p = (r*sen(theta), r*cos(theta)),
+            //com o angulo expandindo no sentido horario
+        //Como tenho p = (r*sen(theta), r*cos(theta)) quando o centro do circulo esta na origem,
+            //se o circulo tem centro de coordenadas C = (Cx, Cy),
+            //basta adicionar Cx e Cy as coordenadas de p.
+            //Com isso, tenho que p = (Cx + r*sen(theta), Cy + r*cos(theta))
+
+        //Loop que adiciona os pares de coordenadas dos pontos
+        for (var i = 0; i <= num_pontos; i++) {
+            //pi = (Cx + r*sen(i*theta), Cy + r*cos(i*theta))
+            var pi = [p0[0] + r*Math.sin(i*theta), p0[1] + r*Math.cos(i*theta) ];
+            //Note que o ultimo ponto do array tera as mesmas coordenadas do primeiro
+            //A razao de colocar o mesmo ponto 2 vezes é pra facilitar na hora de pegar os pontos do ultimo triangulo
+            //Isso ficara mais claro na hora de criar os triangulos que representam o circulo
+            pontos.push(pi);
+        }
+
+        //A funcao retorna
+        return pontos;
+    }
+
     function triangulatepolygon(primitive){
 
         var triangles = [];
@@ -109,7 +207,7 @@
         for (var i = 1; i < n - 1; i++){
 
             var triangle = [
-                {  
+                {
                     shape: "triangle",
                     vertices: [ primitive.vertices[0], primitive.vertices[i], primitive.vertices[i+1] ],
                     color: primitive.color
@@ -120,7 +218,7 @@
         }
 
         return triangles;
-        
+
     }
 
     function Screen( width, height, scene ) {
@@ -147,8 +245,8 @@
                            var n = primitive.vertices.length;
                             for (var i = 1; i < n - 1; i++){
 
-                                var triangle = 
-                                    {  
+                                var triangle =
+                                    {
                                         shape: "triangle",
                                         vertices: [ primitive.vertices[0], primitive.vertices[i], primitive.vertices[i+1] ],
                                         color: primitive.color
@@ -157,7 +255,17 @@
                                 preprop_scene.push(triangle);
                             }
                         break;
-                        case "circle": //miguel tá fazendo
+                        case "circle":
+                            var pontos = triangulateCircle(primitive);
+                            for (var i = 0; i < pontos.length - 1; i++) {
+                                var triangle =
+                                    {
+                                        shape: "triangle",
+                                        vertices: [primitive.center, pontos[i+1], pontos[i] ],
+                                        color: primitive.color
+                                    }
+                                preprop_scene.push(triangle);
+                            }
                         break;
                         default:
                             preprop_scene.push( primitive );
@@ -222,7 +330,7 @@
 
     );
 
-    //Classe ponto pra deixar mais legível as operações com os pontos do triângulo
+    //Classe ponto pra deixar mais legivel as operações com os pontos do triângulo
     class Point {
         constructor(x,y) {
             this.x = x;
@@ -230,7 +338,7 @@
         }
     }
 
-    //Classe vetor 2D para deixar mais legível as operações entre vetores
+    //Classe vetor 2D para deixar mais legivel as operações entre vetores
     class Vector2 {
         constructor(x, y) {
             this.x = x;
