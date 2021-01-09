@@ -8,6 +8,30 @@
         /* ------------------------------------------------------------ */
 
 
+    //Função que calcula as coordenadas da Bounding Box da primitiva
+    //Para fazer isso, coloco as coordenadas x e y de todos os pontos em arrays separados, e então pego os valores mínimos e máximos de x e de y
+    //A função então retorna um par de coordenadas que define os limites do retângulo da Bounding Box
+    function bounding_box(primitive) {
+        var arrX = [];
+        //Array auxiliar com as coordenadas x de cada ponto da primitiva
+        //Para cada ponto, adiciono sua coordenada x ao array
+        for (vertice in primitive.vertices) {
+            arrX.push(vertice[0]);
+        }
+        var arrY = [];
+        //Array auxiliar com as coordenadas y de cada ponto da primitiva
+        //Para cada ponto, adiciono sua coordenada y ao array
+        for (vertice in primitive.vertices) {
+            arrY.push(vertice[1]);
+        }
+
+        var minX = Math.min(arrX);
+        var minY = Math.min(arrY);
+        var maxX = Math.max(arrX);
+        var maxY = Math.max(arrY);
+
+        return [[minX,minY], [maxX,maxY]];
+    }
 
     function inside(  x, y, primitive  ) {
             // You should implement your inside test here for all shapes
@@ -22,51 +46,29 @@
     }
 
     function insideTriangle(x, y, triangle) {
+        //Ponto que quero calcular se está dentro do triângulo
+        var q = [x, y];
+
         //Pontos do triângulo
-        var p1 = new Point(0,0);
-        var p2 = new Point(0,0);
-        var p3 = new Point(0,0);
-
-        //Pegando as coordenadas do primeiro ponto do triângulo
-        p1.x = triangle.vertices[0][0];
-        p1.y = triangle.vertices[0][1];
-
-        //Pegando as coordenadas do segundo ponto do triângulo
-        p2.x = triangle.vertices[1][0];
-        p2.y = triangle.vertices[1][1];
-
-        //Pegando as coordenadas do terceiro ponto do triângulo
-        p3.x = triangle.vertices[2][0];
-        p3.y = triangle.vertices[2][1];
-
-        //Arestas do triângulo, usadas pra verificar se o ponto está dentro do triângulo
-        var v1 = new Vector2(0,0);
-        var v2 = new Vector2(0,0);
-        var v3 = new Vector2(0,0);
+        var p0 = [triangle.vertices[0][0], triangle.vertices[0][1]];
+        var p1 = [triangle.vertices[1][0], triangle.vertices[1][1]];
+        var p2 = [triangle.vertices[2][0], triangle.vertices[2][1]];
 
         //Aqui eu calculo os vetores V1, V2 e V3, usados pra achar os vetores normais
-        //V1 = P2 - P1
-        v1.x = p2.x - p1.x;
-        v1.y = p2.y - p1.y;
+        //V1 = p1 - p0
+        var v1 = [p1[0] - p0[0], p1[1] - p0[1]];
 
-        //V2 = P3 - P2
-        v2.x = p3.x - p2.x;
-        v2.y = p3.y - p2.y;
+        //V2 = p2 - p1
+        var v2 = [p2[0] - p1[0], p2[1] - p1[1]];
 
-        //V3 = P1 - P3
-        v3.x = p1.x - p3.x;
-        v3.y = p1.y - p3.y;
-
-        //Vetores normais das arestas do triângulo
-        var n1 = new Vector2(0,0);
-        var n2 = new Vector2(0,0);
-        var n3 = new Vector2(0,0);
+        //V3 = p0 - p2
+        var v3 = [p0[0] - p2[0], p0[1] - p2[1]];
 
         //Aqui eu acho as coordenadas do vetor normal de cada aresta
-        //Onde, se eu tenho a aresta Vi = (x1,x2), ni = (-x2,x1)
-        n1.x = -v1.y; n1.y = v1.x;
-        n2.x = -v2.y; n2.y = v2.x;
-        n3.x = -v3.y; n3.y = v3.x;
+        //Onde, se eu tenho a aresta Vi = (x,y), ni = (-y,x)
+        var n1 = [-v1[1], v1[0]];
+        var n2 = [-v2[1], v2[0]];
+        var n3 = [-v3[1], v3[0]];
 
         //Variável usada para realizar o teste de inclusão.
         //Uso apenas uma pois não me interessa guardar os resultados, apenas saber se todos deram > 0. Ou seja, se teste <= 0 alguma vez, retorno false
@@ -74,7 +76,7 @@
 
         //Vetor resultante da subtração (q - Pi), usado no teste de inclusão.
         //Também não preciso armazená-lo, então uso apenas uma variável
-        var sub = new Vector2(0,0);
+        var sub = [0,0];
 
         //Seja "q" o ponto que eu quero saber se está dentro do triângulo
         //Teste ti = ni . (q - Pi) (Produto interno)
@@ -82,27 +84,44 @@
         //teste > 0 -> ponto dentro do triângulo
         //teste = 0 -> ponto na borda do triângulo
         //Teste 1
-        sub.x = x - p1.x;
-        sub.y = y - p1.y;
-        teste = vectorDot(n1, sub);
+        sub = [x - p0[0], y - p0[1]];
+        teste = n1[0]*sub[0] + n1[1]*sub[1]; //t1 = n1 . (q - p0) (Produto interno)
         if (teste < 0) { return false; }
 
         //Teste 2
-        sub.x = x - p2.x;
-        sub.y = y - p2.y;
-        teste = vectorDot(n2, sub);
+        sub = [x - p1[0], y - p1[1]];
+        teste = n2[0]*sub[0] + n2[1]*sub[1]; //t2 = n2 . (q - p1) (Produto interno)
         if (teste < 0) { return false; }
 
         //Teste 3
-        sub.x = x - p3.x;
-        sub.y = y - p3.y;
-        teste = vectorDot(n3, sub);
+        sub = [x - p2[0], y - p2[1]];
+        teste = n3[0]*sub[0] + n3[1]*sub[1]; //t3 = n3 . (q - p2) (Produto interno)
         if (teste < 0) { return false; }
 
         //Se não retornou false em nenhum teste, retorna true
         return true;
     }
 
+    function triangulatepolygon(primitive){
+
+        var triangles = [];
+        n = primitive.vertices.length;
+        for (var i = 1; i < n - 1; i++){
+
+            var triangle = [
+                {  
+                    shape: "triangle",
+                    vertices: [ primitive.vertices[0], primitive.vertices[i], primitive.vertices[i+1] ],
+                    color: primitive.color
+                }
+            ]
+
+            triangles.push(triangle);
+        }
+
+        return triangles;
+        
+    }
 
     function Screen( width, height, scene ) {
         this.width = width;
@@ -123,7 +142,27 @@
                     // do some processing
                     // for now, only copies each primitive to a new list
 
-                    preprop_scene.push( primitive );
+                    switch(primitive.shape){
+                        case "polygon":
+                           var n = primitive.vertices.length;
+                            for (var i = 1; i < n - 1; i++){
+
+                                var triangle = 
+                                    {  
+                                        shape: "triangle",
+                                        vertices: [ primitive.vertices[0], primitive.vertices[i], primitive.vertices[i+1] ],
+                                        color: primitive.color
+                                    }
+
+                                preprop_scene.push(triangle);
+                            }
+                        break;
+                        case "circle": //miguel tá fazendo
+                        break;
+                        default:
+                            preprop_scene.push( primitive );
+
+                    }
 
                 }
 
