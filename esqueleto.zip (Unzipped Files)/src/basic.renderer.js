@@ -36,13 +36,32 @@
     function inside(  x, y, primitive  ) {
             // You should implement your inside test here for all shapes
             // for now, it only returns a false test
+
+
             if (primitive.shape == "triangle") {
                 return insideTriangle(x, y, primitive);
             }
 
-            //if (primitive.shape != "triangle") { triangular a primitiva e chamar inside para todos os triângulos resultantes }
-
+            
             return false
+    }
+
+    function multiplicaMatrizVetor(triangle){
+
+        for(var j = 0; j < triangle.vertices.length; j++){
+
+            triangle.vertices[j][2] = 1.;
+        
+            var VetorTemp = [0, 0, 0];
+            for(var l = 0; l < 3; l++){
+                for(var k = 0; k < 3; k++){
+                    VetorTemp[l] += triangle.xform[l][k]*triangle.vertices[j][k];
+                }                
+            } 
+
+            triangle.vertices[j] = VetorTemp;
+
+        }
     }
 
     function insideTriangle(x, y, triangle) {
@@ -102,27 +121,6 @@
         return true;
     }
 
-    function triangulatepolygon(primitive){
-
-        var triangles = [];
-        n = primitive.vertices.length;
-        for (var i = 1; i < n - 1; i++){
-
-            var triangle = [
-                {  
-                    shape: "triangle",
-                    vertices: [ primitive.vertices[0], primitive.vertices[i], primitive.vertices[i+1] ],
-                    color: primitive.color
-                }
-            ]
-
-            triangles.push(triangle);
-        }
-
-        return triangles;
-        
-    }
-
     function Screen( width, height, scene ) {
         this.width = width;
         this.height = height;
@@ -153,11 +151,17 @@
                                         vertices: [ primitive.vertices[0], primitive.vertices[i], primitive.vertices[i+1] ],
                                         color: primitive.color
                                     }
+                                
+                               
+                                if(primitive.hasOwnProperty('xform')){
+                                    triangle.xform = primitive.xform;
+                                    multiplicaMatrizVetor(triangle);
+                                }
 
                                 preprop_scene.push(triangle);
                             }
                         break;
-                        case "circle": //miguel tá fazendo
+                        case "circle": 
                         break;
                         default:
                             preprop_scene.push( primitive );
