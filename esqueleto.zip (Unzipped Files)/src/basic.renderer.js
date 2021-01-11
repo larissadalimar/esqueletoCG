@@ -5,13 +5,13 @@
 }(this, (function (exports) { 'use strict';
 
 
-        /* ------------------------------------------------------------ 
+        /* ------------------------------------------------------------
             Alunos:
-            Larissa Dalimar Lima Viana      DRE: 117213958
-            Miguel Santos                   DRE: 
-            Tarefa Prática 1 - Computação Gráfica        
+            Larissa Dalimar Lima Viana              DRE: 117213958
+            Miguel Santos de Araujo do Nascimento   DRE: 115191914
+            Tarefa Prática 1 - Computação Gráfica 2020.1
         */
-        
+
 
 
     //Funcao que calcula as coordenadas da Bounding Box da primitiva
@@ -167,16 +167,16 @@
     function multiplicaMatrizVetor(triangle){
 
         //Para cada vértice da primitiva vamos aplicar a tranformação afim xform
-        for(var j = 0; j < triangle.vertices.length; j++){ 
+        for(var j = 0; j < triangle.vertices.length; j++){
 
             triangle.vertices[j][2] = 1.; //Coordenada homogênea aplicada
-        
+
             var VetorTemp = [0, 0, 0];
             for(var l = 0; l < 3; l++){     //multiplicação entre xform e o vértice
                 for(var k = 0; k < 3; k++){
                     VetorTemp[l] += triangle.xform[l][k]*triangle.vertices[j][k];
-                }                
-            } 
+                }
+            }
 
             triangle.vertices[j] = VetorTemp; //novo vétice após a tranformação
 
@@ -185,7 +185,7 @@
 
     function verifyTransformation(primitive, triangle){
 
-        if(primitive.hasOwnProperty('xform')){ 
+        if(primitive.hasOwnProperty('xform')){
             triangle.xform = primitive.xform;
             multiplicaMatrizVetor(triangle);
         }
@@ -219,7 +219,7 @@
                                         vertices: [ primitive.vertices[0], primitive.vertices[i], primitive.vertices[i+1] ],
                                         color: primitive.color
                                     }
-                                
+
                                 verifyTransformation(primitive, triangle);
 
                                 preprop_scene.push(triangle);
@@ -234,13 +234,13 @@
                                         vertices: [primitive.center, pontos[i+1], pontos[i] ],
                                         color: primitive.color
                                     }
-                                
+
                                 verifyTransformation(primitive, triangle);
                                 preprop_scene.push(triangle);
                             }
                         break;
                         default: //quando a primitiva já é um triangulo
-                            
+
                             if(primitive.hasOwnProperty('xform'))
                                 multiplicaMatrizVetor(primitive);
 
